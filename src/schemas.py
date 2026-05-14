@@ -1,5 +1,5 @@
 #src/schemas.py
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -12,15 +12,14 @@ class UserCreate(BaseModel):
 
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     email: str
     department: Optional[str]
     role: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class TaskCreate(BaseModel):
@@ -46,6 +45,8 @@ class TaskUpdate(BaseModel):
 
 
 class TaskResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     sender: str
     subject: str
@@ -61,6 +62,3 @@ class TaskResponse(BaseModel):
     deadline: Optional[datetime]
     completed_at: Optional[datetime]
     owner_id: int
-
-    class Config:
-        from_attributes = True
