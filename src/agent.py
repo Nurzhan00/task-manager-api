@@ -1,9 +1,9 @@
-# agent.py
+# task-manager-api/src/agent.py
+
 import os
 from anthropic import Anthropic
 from dotenv import load_dotenv
 import httpx
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -25,6 +25,14 @@ def execute_tool(tool_name: str, tool_input: dict) -> str:
         if response.status_code == 200:
             stats = response.json()
             return f"Квартал {stats['quarter']}: всего {stats['total']}, выполнено {stats['completed']}, процент выполнения {stats['completion_rate']}%"
+        return f"Ошибка: {response.text}"
+
+    if tool_name == "update_task":
+        task_id = tool_input.pop("task_id")
+        response = httpx.patch(f"{API_URL}/tasks/{task_id}", json=tool_input)
+        if response.status_code == 200:
+            task = response.json()
+            return f"Задача #{task_id} обновлена. Статус: {task['status']}"
         return f"Ошибка: {response.text}"
 
     return "Unknown tool"
@@ -66,6 +74,26 @@ tools = [
                 "quarter": {"type": "string", "description": "Quarter e.g. Q2 2026"}
             },
             "required": ["quarter"],
+        },
+    },
+    {
+        "name": "update_task",
+        "description": "Update task status and add solution. Use when user wants to close, complete or update a task.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "integer", "description": "Task ID to update"},
+                "status": {
+                    "type": "string",
+                    "enum": ["Выполнена", "В работе", "В ожидании", "Отменена"],
+                },
+                "solution": {"type": "string", "description": "Solution or comment"},
+                "quarter_fact": {
+                    "type": "string",
+                    "description": "Actual quarter e.g. Q2 2026",
+                },
+            },
+            "required": ["task_id", "status"],
         },
     },
 ]
